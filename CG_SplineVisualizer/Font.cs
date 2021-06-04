@@ -12,18 +12,6 @@ using System.Drawing;
 
 namespace CG_SplineVisualizer
 {
-    public class Texture
-    {
-        public int TexId { get; private set; }
-        public int Width { get; private set; }
-        public int Height { get; private set; }
-        public Texture(int width, int height)
-        {
-            Width = width;
-            Height = height;
-            TexId = GL.GenTexture();
-        }
-    }
     public class Font : IDisposable
     {
         public int MinLineSpacing { get; private set; }

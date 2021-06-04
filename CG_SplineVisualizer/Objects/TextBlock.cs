@@ -37,6 +37,22 @@ namespace CG_SplineVisualizer.Objects
             }
         }
 
+        public Vector3 Color { get; set; }
+
+        private Font curFont;
+        public Font CurrentFont
+        {
+            get => curFont;
+            set
+            {
+                if (!value.FamilyName.Equals(curFont.FamilyName))
+                {
+                    curFont = value;
+                    Update();
+                }
+            }
+        }
+
         private int lineSpacing;
         public int LineSpacing
         {
@@ -54,26 +70,13 @@ namespace CG_SplineVisualizer.Objects
         public int VAO { get; private set; }
         private int VBO;
 
-        private Font curFont;
-        public Font CurrentFont
-        {
-            get => curFont;
-            set
-            {
-                if (!value.FamilyName.Equals(curFont.FamilyName))
-                {
-                    curFont = value;
-                    Update();
-                }
-            }
-        }
-                
-        public TextBlock(string text, Vector3 position, Font font, int lineSpacing = 0)
+        public TextBlock(string text, Vector3 position, Font font, Vector3 color, int lineSpacing = 0)
         {
             this.text = text;
             curFont = font;
 
             this.position = position;
+            Color = color;
             this.lineSpacing = lineSpacing;
 
             VAO = GL.GenVertexArray();
