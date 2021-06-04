@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using OpenTK.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,5 +17,6 @@ namespace CG_SplineVisualizer
         float NearPlane { get; set; }
         float FarPlane { get; set; }
         void Update();
+        void OnMouseWheel(object sender, MouseWheelEventArgs e);
     }
 }

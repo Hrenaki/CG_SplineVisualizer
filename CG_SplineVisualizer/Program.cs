@@ -11,7 +11,7 @@ namespace CG_SplineVisualizer
         
         static void Main(string[] args)
         {
-            using(Window win = new Window(800, 800, "Spline"))
+            using(Window win = new Window(600, 600, "Spline"))
             {
                 win.Run(60.0);
             }

@@ -11,6 +11,10 @@ using CG_SplineVisualizer.Objects;
 using NumMath.Splines;
 using ShaderCompiler;
 using System.Drawing;
+using System.Reflection;
+using System.IO;
+using SharpFont;
+using System.Runtime.InteropServices;
 
 namespace CG_SplineVisualizer
 {
@@ -19,6 +23,11 @@ namespace CG_SplineVisualizer
         ICamera camera;
         Spline2DObject spline2D;
         Shader shader;
+        Shader textShader;
+        TextBlock textBlock;
+
+        Vector3 textColor = new Vector3(1, 0, 0);
+
         public Window(int width, int height, string title) : base(width, height, GraphicsMode.Default, title)
         {
             camera = new Camera()
@@ -30,41 +39,57 @@ namespace CG_SplineVisualizer
                 FarPlane = 100f
             };
 
-            spline2D = new Spline2DObject(new InterpolationSpline());
+            //this.MouseDown += InputManager.OnMouseDown;
+            //this.MouseWheel += InputManager.OnMouseWheel;
+            //
+            //InputManager.MouseDown += spline2D.Update;
+            //InputManager.MouseWheel += camera.OnMouseWheel;
 
-            this.MouseDown += InputManager.OnMouseDown;
-
-            InputManager.MouseDown += spline2D.Update;
+            AssetsManager.LoadFontFrom("Assets\\Fonts\\Tahoma.ttf", 50);
+            textBlock = new TextBlock("Hello world!\nSecond line", new Vector3(0, 0, 0), AssetsManager.Fonts["Default"], 10);
         }
         protected override void OnLoad(EventArgs e)
         {
             GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-            spline2D.Load();
+            //spline2D.Load();
 
-            shader = new Shader("shader.vert", "shader.frag");
+            //shader = new Shader("shader.vert", "shader.frag");
+            textShader = new Shader("Assets\\Shaders\\textShader.vert", "Assets\\Shaders\\textShader.frag");
+
+            GL.Enable(EnableCap.DepthTest);
+
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
             base.OnLoad(e);
         }
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            GL.Clear(ClearBufferMask.ColorBufferBit);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            spline2D.OnRender();
+            //spline2D.OnRender();
+            //
+            //shader.Use();
+            //
+            //GL.BindVertexArray(spline2D.VAO);
+            //GL.DrawElements(PrimitiveType.Lines, spline2D.LineCount, DrawElementsType.UnsignedInt, 0);
+            //GL.BindVertexArray(0);
 
-            shader.Use();
+            textShader.Use();
 
-            GL.BindVertexArray(spline2D.VAO);
-            //GL.DrawArrays(PrimitiveType.Points, 0, 2);
-            GL.DrawElements(PrimitiveType.Lines, spline2D.LineCount, DrawElementsType.UnsignedInt, 0);
+            textShader.SetVector3("textColor", textColor);
+
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2D, textBlock.CurrentFont.Atlas.Tex.TexId);
+
+            GL.BindVertexArray(textBlock.VAO);
+            GL.DrawArrays(PrimitiveType.Quads, 0, textBlock.Text.Length * 4);
             GL.BindVertexArray(0);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
 
             SwapBuffers();
             base.OnRenderFrame(e);
-        }
-        protected override void OnMouseMove(MouseMoveEventArgs e)
-        {
-            //Console.WriteLine(e.X + " " + e.Y);
-            base.OnMouseMove(e);
         }
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
@@ -82,7 +107,7 @@ namespace CG_SplineVisualizer
         }
         protected override void OnClosed(EventArgs e)
         {
-            shader.Dispose();
+            textShader.Dispose();
             base.OnUnload(e);
         }
     }
