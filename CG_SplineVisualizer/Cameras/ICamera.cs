@@ -16,6 +16,9 @@ namespace CG_SplineVisualizer
         float Speed { get; set; }
         float NearPlane { get; set; }
         float FarPlane { get; set; }
+        float Width { get; set; }
+        float Height { get; set; }
+        float ZoomFactor { get; set; }
         void Update();
         void OnMouseWheel(object sender, MouseWheelEventArgs e);
     }

@@ -63,7 +63,7 @@
     <Compile Include="Cameras\Camera.cs" />
     <Compile Include="Cameras\ICamera.cs" />
     <Compile Include="Font.cs" />
-    <Compile Include="Objects\Grid2D.cs" />
+    <Compile Include="Objects\Grid2DObject.cs" />
     <Compile Include="InputManager.cs" />
     <Compile Include="Objects\PlotObject.cs" />
     <Compile Include="Objects\Point.cs" />
@@ -112,6 +112,12 @@
     <None Include="Assets\Shaders\point_triangle.gsh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Assets\Shaders\grid.fsh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <Content Include="Assets\Shaders\grid.vsh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="freetype6.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

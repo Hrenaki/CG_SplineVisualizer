@@ -16,13 +16,51 @@ namespace CG_SplineVisualizer
         private Vector3 up = new Vector3(0, 1, 0);
         private Vector3 forward = new Vector3(0, 0, -1);
 
-        public Matrix4 Projection { get => Matrix4.CreateOrthographic(Width, Height, NearPlane, FarPlane); }
-        public Matrix4 View { get => Matrix4.LookAt(Position, Position + forward, up); }
+        public Matrix4 Projection
+        {
+            get
+            {
+                return new Matrix4(1 / Width, 0, 0, 0,
+                                   0, 1 / Height, 0, 0,
+                                   0, 0, 1 / (FarPlane - NearPlane), 0,
+                                   0, 0, -NearPlane / (FarPlane - NearPlane), 1);
+            }
+        }
+        public Matrix4 View 
+        { 
+            get
+            {
+                return new Matrix4(right.X, up.X, forward.X, 0,
+                                   right.Y, up.Y, forward.Y, 0,
+                                   right.Z, up.Z, forward.Z, 0,
+                                   Vector3.Dot(right, -Position), Vector3.Dot(up, -Position), Vector3.Dot(forward, -Position), 1);
+            }
+        }
         public float Speed { get; set; }
         public float Width { get; set; }
         public float Height { get; set; }
         public float NearPlane { get; set; }
         public float FarPlane { get; set; }
+        public float ZoomFactor { get; set; }
+
+        private float originSpeed;
+        private float originHeight;
+        private float originWidth;
+
+        public Camera(Vector3 position, float speed, float width, float height, float nearPlane, float farPlane)
+        {
+            Position = position;
+            Speed = speed;
+            Width = width;
+            Height = height;
+            NearPlane = nearPlane;
+            FarPlane = farPlane;
+
+            ZoomFactor = 1.0f;
+            originSpeed = Speed;
+            originWidth = Width;
+            originHeight = Height;
+        }
 
         public void Update()
         {
@@ -31,7 +69,7 @@ namespace CG_SplineVisualizer
             if (InputManager.IsKeyDown(Key.S))
                 Position -= Speed * forward;
             if (InputManager.IsKeyDown(Key.D))
-                Position -= Speed * right;
+                Position += Speed * right;
             if (InputManager.IsKeyDown(Key.A))
                 Position -= Speed * right;
             if (InputManager.IsKeyDown(Key.ShiftLeft))
@@ -41,8 +79,16 @@ namespace CG_SplineVisualizer
         }
         public void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            Height += e.Delta * 2;
-            Width += e.Delta * 2;
+            if (e.Delta < 0)
+                ZoomFactor *= 1.1f;
+            else ZoomFactor /= 1.1f;
+
+            if (ZoomFactor == 0)
+                ZoomFactor = float.Epsilon;
+
+            Speed = ZoomFactor * originSpeed;
+            Height = ZoomFactor * originHeight;
+            Width = ZoomFactor * originWidth;
         }
     }
 }
