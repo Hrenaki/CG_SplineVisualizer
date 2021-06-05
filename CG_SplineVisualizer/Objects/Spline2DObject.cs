@@ -12,34 +12,29 @@ using OpenTK.Graphics.OpenGL;
 
 namespace CG_SplineVisualizer.Objects
 {
-    public class SimpleSpline : ISpline2D
-    {
-        public void CreateSpline(NumMath.Vector2[] points)
-        {
-            return;
-        }
-
-        public double GetValue(double x)
-        {
-            return -x * x;
-        }
-    }
-
     public class Spline2DObject
     {
+        public int PointCount { get => points.Count; }
         List<NumMath.Vector2> points;
+
+        public PointSample PointSample { get; set; }
+
         ISpline2D spline;
 
-        public int VAO;
+        public int VAO { get; private set; }
         private int VBO;
         private int EBO;
 
+        public int PointVAO { get; private set; }
+        private int PointVBO;
+
         int segmentCount = 10;
-        public int LineCount { get => 2 * (points.Count - 1) * segmentCount; }
-        public Spline2DObject(ISpline2D spline)
+        public int LineCount { get; private set; }
+        public Spline2DObject(ISpline2D spline, Vector3 pointColor, float size = PointSize.Medium, PointShape shape = PointShape.Quad)
         {
             this.spline = spline;
             points = new List<NumMath.Vector2>();
+            PointSample = new PointSample(pointColor, size, shape);
         }
 
         public void Load()
@@ -56,19 +51,28 @@ namespace CG_SplineVisualizer.Objects
             GL.EnableVertexAttribArray(0);
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, EBO);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, 0, new uint[] { }, BufferUsageHint.DynamicDraw);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, 0, new uint[] { }, BufferUsageHint.StreamDraw);
 
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-        }
-        public void Update(object sender, MouseButtonEventArgs e)
-        {
-            int[] data = new int[4];
-            GL.GetInteger(GetPName.Viewport, data);
 
-            NumMath.Vector2 newPoint = new NumMath.Vector2(2.0f * e.X / data[2] - 1.0f, -2.0f * e.Y / data[3] + 1.0f);
-            
+
+            PointVAO = GL.GenVertexArray();
+            PointVBO = GL.GenBuffer();
+
+            GL.BindVertexArray(PointVAO);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, PointVBO);
+            GL.BufferData(BufferTarget.ArrayBuffer, 0, new float[] { }, BufferUsageHint.StreamDraw);
+            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
+            GL.BindVertexArray(0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+        }
+        public void AddPoint(OpenTK.Vector2 point)
+        {
+            NumMath.Vector2 newPoint = new NumMath.Vector2(point.X, point.Y);           
             int i;
             for (i = 0; i < points.Count; i++)
             {
@@ -80,12 +84,8 @@ namespace CG_SplineVisualizer.Objects
             }
             if (i == points.Count)
                 points.Add(newPoint);
-        }
-        public void OnRender()
-        {
-            int i;
-            int pointsCount = points.Count;
 
+            int pointsCount = points.Count;
             if (pointsCount > 0)
             {
                 float[] buff;
@@ -115,6 +115,8 @@ namespace CG_SplineVisualizer.Objects
                     }
                     buff[pos] = (float)points[points.Count - 1].X;
                     buff[pos + 1] = (float)spline.GetValue(points[points.Count - 1].X);
+
+                    LineCount = 2 * (pointsCount - 1) * segmentCount;
                 }
                 else
                 {
@@ -124,6 +126,7 @@ namespace CG_SplineVisualizer.Objects
                         buff[2 * i] = (float)points[i].X;
                         buff[2 * i + 1] = (float)points[i].Y;
                     }
+                    LineCount = pointsCount - 1;
                 }
 
                 GL.BindVertexArray(VAO);
@@ -143,14 +146,26 @@ namespace CG_SplineVisualizer.Objects
 
                     GL.BindBuffer(BufferTarget.ElementArrayBuffer, EBO);
                     GL.BufferData(BufferTarget.ElementArrayBuffer, edges.Length * sizeof(uint), edges, BufferUsageHint.StreamDraw);
-                    GL.DrawElements(PrimitiveType.Lines, edges.Length, DrawElementsType.UnsignedInt, 0);
                 }
-                else GL.DrawArrays(PrimitiveType.Points, 0, 1);
 
                 GL.BindVertexArray(0);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+
+                pointsCount = points.Count;
+                buff = new float[pointsCount * 2];
+                for(i = 0; i < pointsCount; i++)
+                {
+                    buff[2 * i] = (float)points[i].X;
+                    buff[2 * i + 1] = (float)points[i].Y;
+                }
+                GL.BindVertexArray(PointVAO);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, PointVBO);
+                GL.BufferData(BufferTarget.ArrayBuffer, buff.Length * sizeof(float), buff, BufferUsageHint.StreamDraw);
+                GL.BindVertexArray(0);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             }
+            else LineCount = 0;
         }
     }
 }

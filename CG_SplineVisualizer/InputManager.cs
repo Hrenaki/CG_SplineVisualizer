@@ -36,6 +36,11 @@ namespace CG_SplineVisualizer
 
         public static void OnMouseDown(object sender, MouseButtonEventArgs e)
         {
+            //PointAddEventArgs pointAddEventArgs01 = new PointAddEventArgs()
+            //{
+            //    MouseArgs = e,
+            //    Projection = 
+            //}
             MouseDown?.Invoke(sender, e);
         }
 

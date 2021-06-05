@@ -128,6 +128,7 @@ namespace CG_SplineVisualizer.Objects
             GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
             GL.EnableVertexAttribArray(0);
             GL.EnableVertexAttribArray(1);
+
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }

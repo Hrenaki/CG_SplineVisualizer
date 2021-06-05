@@ -66,6 +66,7 @@
     <Compile Include="Objects\Grid2D.cs" />
     <Compile Include="InputManager.cs" />
     <Compile Include="Objects\PlotObject.cs" />
+    <Compile Include="Objects\Point.cs" />
     <Compile Include="Objects\Spline2DObject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -80,16 +81,19 @@
     <None Include="Assets\Fonts\tahomabd.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Assets\Shaders\shader.frag">
+    <None Include="Assets\Shaders\default.fsh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Assets\Shaders\shader.vert">
+    <None Include="Assets\Shaders\default.vsh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Assets\Shaders\textShader.frag">
+    <None Include="Assets\Shaders\point.fsh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Assets\Shaders\textShader.vert">
+    <None Include="Assets\Shaders\text.fsh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Assets\Shaders\text.vsh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="OpenTK.dll.config" />
@@ -99,10 +103,18 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Shaders\point_quad.gsh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Assets\Shaders\point.vsh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Assets\Shaders\point_triangle.gsh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <Content Include="freetype6.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

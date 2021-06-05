@@ -16,7 +16,7 @@ namespace CG_SplineVisualizer
         private Vector3 up = new Vector3(0, 1, 0);
         private Vector3 forward = new Vector3(0, 0, -1);
 
-        public Matrix4 Projection { get => Matrix4.CreateOrthographic(Width, Height, NearPlane, FarPlane);}
+        public Matrix4 Projection { get => Matrix4.CreateOrthographic(Width, Height, NearPlane, FarPlane); }
         public Matrix4 View { get => Matrix4.LookAt(Position, Position + forward, up); }
         public float Speed { get; set; }
         public float Width { get; set; }
@@ -39,11 +39,10 @@ namespace CG_SplineVisualizer
             if (InputManager.IsKeyDown(Key.LControl))
                 Position -= Speed * up;
         }
-
         public void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            Height += e.Delta * 5;
-            Width += e.Delta * 5;
+            Height += e.Delta * 2;
+            Width += e.Delta * 2;
         }
     }
 }
