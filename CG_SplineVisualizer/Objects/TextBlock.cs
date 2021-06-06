@@ -10,6 +10,9 @@ namespace CG_SplineVisualizer.Objects
 {
     public class TextBlock
     {
+        public float Width { get; private set; }
+        public float Height { get; private set; }
+
         private string text = "";
         public string Text
         {
@@ -104,43 +107,55 @@ namespace CG_SplineVisualizer.Objects
         {
             List<float> buffer = new List<float>();
 
-            float curX = position.X;
-            float curY = position.Y;
+            Width = 0;
+            Height = 0;
+
+            float curScaleY = 1.0f / Window.CurWindow.Height * Scale;
+            float curScaleX = 1.0f / Window.CurWindow.Width * Scale;
+
+            float bearingY = curFont.MaxBearingY * curScaleY;
+            float curLineSpacing = (curFont.MinLineSpacing + lineSpacing) * curScaleY;
+
+            float originX = position.X;
+            float originY = position.Y - bearingY;
             float xPos, yPos;
-            float w, h;
+            float rectW, rectH;
+            float texW, texH;
             float texX, texY;
             for(int i = 0; i < text.Length; i++)
             {
                 if(text[i] == '\n' || text[i] == '\r')
                 {
-                    curX = position.X;
-                    curY -= (curFont.MinLineSpacing + lineSpacing) / (float)curFont.Atlas.Height * Scale;
+                    Width = Math.Max(originX - position.X, Width);
+
+                    originX = position.X;
+                    originY -= curLineSpacing;
                     continue;
                 }
 
                 Character character = (Character)CurrentFont.Atlas[text[i]];
 
-                w = character.width / (float)curFont.Atlas.Width;
-                h = character.height / (float)curFont.Atlas.Height;
+                rectW = character.width * curScaleX;
+                rectH = character.height * curScaleY;
 
-                xPos = curX + character.bearingX / (float)curFont.Atlas.Width * Scale;
-                yPos = curY - (h - character.bearingY / (float)curFont.Atlas.Height) * Scale;
+                texW = character.width / (float)curFont.Atlas.Width;
+                texH = character.height / (float)curFont.Atlas.Height;
+
+                xPos = originX + character.bearingX * curScaleX;
+                yPos = originY - rectH + character.bearingY * curScaleY;
 
                 texX = character.x / (float)curFont.Atlas.Width;
                 texY = character.y / (float)curFont.Atlas.Height;
 
-                //buffer.AddRange(new float[] { xPos, yPos - h * Scale, position.Z, texX, texY + h });
-                //buffer.AddRange(new float[] { xPos + w * Scale, yPos - h * Scale, position.Z, texX + w, texY + h });
-                //buffer.AddRange(new float[] { xPos + w * Scale, yPos, position.Z, texX + w, texY });
-                //buffer.AddRange(new float[] { xPos, yPos, position.Z, texX, texY });
+                buffer.AddRange(new float[] { xPos, yPos, position.Z, texX, texY + texH });
+                buffer.AddRange(new float[] { xPos, yPos + rectH, position.Z, texX, texY });
+                buffer.AddRange(new float[] { xPos + rectW, yPos + rectH, position.Z, texX + texW, texY });
+                buffer.AddRange(new float[] { xPos + rectW, yPos, position.Z, texX + texW, texY + texH });
 
-                buffer.AddRange(new float[] { xPos, yPos, position.Z, texX, texY + h });
-                buffer.AddRange(new float[] { xPos, yPos + h * Scale, position.Z, texX, texY });
-                buffer.AddRange(new float[] { xPos + w * Scale, yPos + h * Scale, position.Z, texX + w, texY });
-                buffer.AddRange(new float[] { xPos + w * Scale, yPos, position.Z, texX + w, texY + h });
-
-                curX += (character.advance >> 6) / (float)curFont.Atlas.Width * Scale;
+                originX += (character.advance >> 6) * curScaleX;
             }
+            Width = Math.Max(originX - position.X, Width);
+            Height = Math.Abs(originY - position.Y) + curFont.MinLineSpacing * curScaleY - bearingY;
 
             GL.BindVertexArray(VAO);
             GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
@@ -153,6 +168,11 @@ namespace CG_SplineVisualizer.Objects
 
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        }
+        public void ClearBuffers()
+        {
+            GL.DeleteVertexArray(VAO);
+            GL.DeleteBuffer(VBO);
         }
     }
 }

@@ -6,8 +6,8 @@ uniform vec3 cameraPosition;
 uniform float width;
 uniform float height;
 
-uniform float screenWidth;
-uniform float screenHeight;
+uniform int screenWidth;
+uniform int screenHeight;
 
 uniform float dx;
 uniform float dy;
@@ -21,10 +21,10 @@ void main()
 	float pixelGlobalWidth = width / screenWidth;
 	float pixelGlobalHeight = height / screenHeight;
 
-	vec2 coords = vec2((2.0 * gl_FragCoord.x / screenWidth - 1.0) * width + cameraPosition.x, (2.0 * gl_FragCoord.y / screenHeight - 1.0) * height + cameraPosition.y);
+	vec2 coords = vec2((gl_FragCoord.x / screenWidth - 0.5) * width + cameraPosition.x, (gl_FragCoord.y / screenHeight - 0.5) * height + cameraPosition.y);
 
-	if((dx / 2.0 - abs(mod(coords.x, dx) - dx / 2.0)) <= pixelGlobalWidth || (dy / 2.0 - abs(mod(coords.y, dy) - dy / 2.0)) <= pixelGlobalHeight || 
-		abs(coords.x) <= pixelGlobalWidth * 3.0 || abs(coords.y) <= pixelGlobalHeight * 3.0)
+	if((dx / 2.0 - abs(mod(coords.x, dx) - dx / 2.0)) <= pixelGlobalWidth * 0.5 || (dy / 2.0 - abs(mod(coords.y, dy) - dy / 2.0)) <= pixelGlobalHeight * 0.5 || 
+		abs(coords.x) <= pixelGlobalWidth || abs(coords.y) <= pixelGlobalHeight)
 		Frag_Color = vec4(Color, 1.0);
 	else discard;
 

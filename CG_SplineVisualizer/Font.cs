@@ -15,6 +15,7 @@ namespace CG_SplineVisualizer
     public class Font : IDisposable
     {
         public int MinLineSpacing { get; private set; }
+        public int MaxBearingY { get; private set; }
         public string FamilyName { get; private set; }
         internal TextureAtlas Atlas { get; private set; }
         private Face face;
@@ -30,13 +31,16 @@ namespace CG_SplineVisualizer
             Atlas.Generate(face);
 
             MinLineSpacing = 0;
+            MaxBearingY = 0;
             Character? tmp;
             for(char c = (char)0; c < (char)255; c++)
             {                
                 if ((tmp = Atlas[c]) == null)
                     break;
                 if (tmp?.height > MinLineSpacing)
-                    MinLineSpacing = (int)tmp?.bearingY;
+                    MinLineSpacing = (int)tmp?.height;
+                if (tmp?.bearingY > MaxBearingY)
+                    MaxBearingY = (int)tmp?.bearingY;
             }
         }
         public void Dispose()

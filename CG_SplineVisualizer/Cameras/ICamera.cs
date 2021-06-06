@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CG_SplineVisualizer
 {
-    interface ICamera
+    public interface ICamera
     {
         Vector3 Position { get; set; }
         Matrix4 Projection { get; }
@@ -21,5 +21,6 @@ namespace CG_SplineVisualizer
         float ZoomFactor { get; set; }
         void Update();
         void OnMouseWheel(object sender, MouseWheelEventArgs e);
+        void MakeCurrent();
     }
 }

@@ -10,6 +10,7 @@ namespace CG_SplineVisualizer
 {
     public class Camera : ICamera
     {
+        public static ICamera CurCamera { get; private set; } = null;
         public Vector3 Position { get; set; }
 
         private Vector3 right = new Vector3(1, 0, 0);
@@ -20,8 +21,9 @@ namespace CG_SplineVisualizer
         {
             get
             {
-                return new Matrix4(1 / Width, 0, 0, 0,
-                                   0, 1 / Height, 0, 0,
+                //return Matrix4.CreateOrthographic(Width, Height, NearPlane, FarPlane);
+                return new Matrix4(2 / Width, 0, 0, 0,
+                                   0, 2 / Height, 0, 0,
                                    0, 0, 1 / (FarPlane - NearPlane), 0,
                                    0, 0, -NearPlane / (FarPlane - NearPlane), 1);
             }
@@ -49,6 +51,9 @@ namespace CG_SplineVisualizer
 
         public Camera(Vector3 position, float speed, float width, float height, float nearPlane, float farPlane)
         {
+            if (CurCamera == null)
+                CurCamera = this;
+
             Position = position;
             Speed = speed;
             Width = width;
@@ -89,6 +94,11 @@ namespace CG_SplineVisualizer
             Speed = ZoomFactor * originSpeed;
             Height = ZoomFactor * originHeight;
             Width = ZoomFactor * originWidth;
+        }
+
+        public void MakeCurrent()
+        {
+            CurCamera = this;
         }
     }
 }

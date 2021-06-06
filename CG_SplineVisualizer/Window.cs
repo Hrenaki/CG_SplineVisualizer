@@ -12,6 +12,8 @@ namespace CG_SplineVisualizer
     public class Window : GameWindow
     {
         ICamera camera;
+
+        public static Window CurWindow { get; private set; } = null;
         Spline2DObject spline2D;
         Grid2DObject grid2D;
 
@@ -20,6 +22,9 @@ namespace CG_SplineVisualizer
 
         public Window(int width, int height, string title) : base(width, height, GraphicsMode.Default, title)
         {
+            if (CurWindow == null)
+                CurWindow = this;
+
             AssetsManager.Init();
         }
         protected override void OnLoad(EventArgs e)
@@ -33,14 +38,14 @@ namespace CG_SplineVisualizer
             gridShader = AssetsManager.LoadShader("grid", new ShaderComponent("Assets\\Shaders\\grid.vsh"), new ShaderComponent("Assets\\Shaders\\grid.fsh"));
 
             AssetsManager.LoadFontFrom("Assets\\Fonts\\Tahoma.ttf", 50, 50);
-            textBlock = new TextBlock("AAAA", new Vector3(0, 0, 0), AssetsManager.Fonts["Default"], new Vector3(0), 0.5f);
+            //textBlock = new TextBlock("AAAA", new Vector3(0, 0, 0), AssetsManager.Fonts["Default"], new Vector3(0), 0.5f);
 
             camera = new Camera(new Vector3(0, 0, 5), 0.05f, 2.1f, 2.1f, 0.1f, 100f);
 
             spline2D = new Spline2DObject(new InterpolationSpline(), new Vector3(1, 0, 1), PointSize.Small, PointShape.Triangle);
             spline2D.Load();
 
-            grid2D = new Grid2DObject(AssetsManager.Fonts["Default"], new Vector3(0, 0, 0), camera.Width, camera.Height, 0.25f, 0.25f);
+            grid2D = new Grid2DObject(AssetsManager.Fonts["Default"], new Vector3(0, 0, 0));
 
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.Blend);
@@ -50,13 +55,14 @@ namespace CG_SplineVisualizer
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            Matrix4 tmp;
 
             gridShader.Use();
             GL.Uniform3(gridShader.Locations["cameraPosition"], camera.Position);
             GL.Uniform1(gridShader.Locations["width"], camera.Width);
             GL.Uniform1(gridShader.Locations["height"], camera.Height);
-            GL.Uniform1(gridShader.Locations["screenWidth"], (float)Width);
-            GL.Uniform1(gridShader.Locations["screenHeight"], (float)Height);
+            GL.Uniform1(gridShader.Locations["screenWidth"], Width);
+            GL.Uniform1(gridShader.Locations["screenHeight"], Height);
             GL.Uniform1(gridShader.Locations["dx"], grid2D.Dx);
             GL.Uniform1(gridShader.Locations["dy"], grid2D.Dy);
             GL.Uniform3(gridShader.Locations["Color"], grid2D.Color);
@@ -64,7 +70,28 @@ namespace CG_SplineVisualizer
             GL.BindVertexArray(grid2D.VAO);
             GL.DrawArrays(PrimitiveType.Quads, 0, 4);
             GL.BindVertexArray(0);
-            
+
+            textShader.Use();
+            GL.Uniform3(textShader.Locations["textColor"], grid2D.Color);
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2D, grid2D.Font.Atlas.Tex.TexId);
+            foreach (TextBlock textBlock in grid2D.LabelsX)
+            {
+                GL.BindVertexArray(textBlock.VAO);
+                GL.DrawArrays(PrimitiveType.Quads, 0, textBlock.Text.Length * 4);
+                GL.BindVertexArray(0);
+            }
+            foreach (TextBlock textBlock in grid2D.LabelsY)
+            {
+                GL.BindVertexArray(textBlock.VAO);
+                GL.DrawArrays(PrimitiveType.Quads, 0, textBlock.Text.Length * 4);
+                GL.BindVertexArray(0);
+            }
+            GL.BindVertexArray(grid2D.Zero.VAO);
+            GL.DrawArrays(PrimitiveType.Quads, 0, grid2D.Zero.Text.Length * 4);
+            GL.BindVertexArray(0);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+
             switch (spline2D.PointSample.Shape)
             {
                 case PointShape.Quad:
@@ -76,7 +103,7 @@ namespace CG_SplineVisualizer
             }
             
             pointShader.Use();
-            var tmp = camera.Projection;
+            tmp = camera.Projection;
             GL.UniformMatrix4(pointShader.Locations["proj"], false, ref tmp);
             tmp = camera.View;
             GL.UniformMatrix4(pointShader.Locations["view"], false, ref tmp);
@@ -100,22 +127,6 @@ namespace CG_SplineVisualizer
                 GL.DrawElements(PrimitiveType.Lines, spline2D.LineCount * 2, DrawElementsType.UnsignedInt, 0);
             GL.BindVertexArray(0);
 
-            textShader.Use();
-            GL.Uniform3(textShader.Locations["textColor"], grid2D.Color);
-            tmp = camera.Projection;
-            GL.UniformMatrix4(defaultShader.Locations["proj"], false, ref tmp);
-            tmp = camera.View;
-            GL.UniformMatrix4(defaultShader.Locations["view"], false, ref tmp);
-            GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, textBlock.CurrentFont.Atlas.Tex.TexId);
-            foreach (TextBlock textBlock in grid2D.LabelsX)
-            {                
-                GL.BindVertexArray(textBlock.VAO);
-                GL.DrawArrays(PrimitiveType.Quads, 0, textBlock.Text.Length * 4);
-                GL.BindVertexArray(0);
-            }
-            GL.BindTexture(TextureTarget.Texture2D, 0);
-
             //textShader.Use();
             //GL.Uniform3(textShader.Locations["textColor"], textBlock.Color);
             //GL.ActiveTexture(TextureUnit.Texture0);
@@ -138,7 +149,7 @@ namespace CG_SplineVisualizer
             grid2D.Dx = (float)Math.Pow(2.0, Math.Floor(Math.Log(camera.ZoomFactor, 2))) / 2.0f;
             grid2D.Dy = grid2D.Dx;
 
-            grid2D.Update(camera.Position, camera.Width, camera.Height);
+            grid2D.Update();
 
             //grid2D.Update(camera.Position, camera.Width, camera.Height);
             base.OnUpdateFrame(e);
