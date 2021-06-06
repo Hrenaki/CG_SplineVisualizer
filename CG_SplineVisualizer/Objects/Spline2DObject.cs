@@ -14,7 +14,10 @@ namespace CG_SplineVisualizer.Objects
 {
     public class Spline2DObject
     {
-        public int PointCount { get => points.Count; }
+        public int BasePointCount { get => points.Count; }
+        public int AdditionalPointCount { get; private set; }
+        private int lastAddedPointIndex = -1;
+
         List<NumMath.Vector2> points;
 
         public PointSample PointSample { get; set; }
@@ -70,6 +73,13 @@ namespace CG_SplineVisualizer.Objects
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
         }
+        public void Update()
+        {
+            if (InputManager.IsKeyDown(Key.R))
+                RemoveLastAddedPoint();
+
+            Rebuild();
+        }
         public void AddPoint(OpenTK.Vector2 point)
         {
             NumMath.Vector2 newPoint = new NumMath.Vector2(point.X, point.Y);           
@@ -85,11 +95,17 @@ namespace CG_SplineVisualizer.Objects
             if (i == points.Count)
                 points.Add(newPoint);
 
+            lastAddedPointIndex = i;
+
+            Rebuild();
+        }
+        public void Rebuild()
+        {
+            int i;
             int pointsCount = points.Count;
             if (pointsCount > 0)
             {
                 float[] buff;
-                uint[] edges;
 
                 if (pointsCount >= 3)
                 {
@@ -115,8 +131,6 @@ namespace CG_SplineVisualizer.Objects
                     }
                     buff[pos] = (float)points[points.Count - 1].X;
                     buff[pos + 1] = (float)spline.GetValue(points[points.Count - 1].X);
-
-                    LineCount = 2 * (pointsCount - 1) * segmentCount;
                 }
                 else
                 {
@@ -126,46 +140,41 @@ namespace CG_SplineVisualizer.Objects
                         buff[2 * i] = (float)points[i].X;
                         buff[2 * i + 1] = (float)points[i].Y;
                     }
-                    LineCount = pointsCount - 1;
                 }
+
+                AdditionalPointCount = buff.Length / 2;
 
                 GL.BindVertexArray(VAO);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
                 GL.BufferData(BufferTarget.ArrayBuffer, buff.Length * sizeof(float), buff, BufferUsageHint.StreamDraw);
 
-                if (pointsCount > 1)
-                {
-                    edges = new uint[pointsCount * 2 - 2];
-                    edges[0] = 0;
-                    for (i = 1; i < pointsCount - 1; i++)
-                    {
-                        edges[2 * i - 1] = (uint)i;
-                        edges[2 * i] = edges[2 * i - 1];
-                    }
-                    edges[edges.Length - 1] = (uint)(pointsCount - 1);
-
-                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, EBO);
-                    GL.BufferData(BufferTarget.ElementArrayBuffer, edges.Length * sizeof(uint), edges, BufferUsageHint.StreamDraw);
-                }
-
                 GL.BindVertexArray(0);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 
                 pointsCount = points.Count;
                 buff = new float[pointsCount * 2];
-                for(i = 0; i < pointsCount; i++)
+                for (i = 0; i < pointsCount; i++)
                 {
                     buff[2 * i] = (float)points[i].X;
                     buff[2 * i + 1] = (float)points[i].Y;
                 }
+
                 GL.BindVertexArray(PointVAO);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, PointVBO);
                 GL.BufferData(BufferTarget.ArrayBuffer, buff.Length * sizeof(float), buff, BufferUsageHint.StreamDraw);
                 GL.BindVertexArray(0);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             }
-            else LineCount = 0;
+        }
+        public void RemoveLastAddedPoint()
+        {
+            if(lastAddedPointIndex > -1)
+            {
+                points.RemoveAt(lastAddedPointIndex);
+                lastAddedPointIndex = -1;
+
+                Rebuild();
+            }
         }
     }
 }

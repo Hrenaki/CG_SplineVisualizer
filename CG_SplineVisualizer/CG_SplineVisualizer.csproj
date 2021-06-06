@@ -65,7 +65,6 @@
     <Compile Include="Font.cs" />
     <Compile Include="Objects\Grid2DObject.cs" />
     <Compile Include="InputManager.cs" />
-    <Compile Include="Objects\PlotObject.cs" />
     <Compile Include="Objects\Point.cs" />
     <Compile Include="Objects\Spline2DObject.cs" />
     <Compile Include="Program.cs" />
